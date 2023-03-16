@@ -33,7 +33,7 @@
  '(global-display-line-numbers-mode t)
  '(menu-bar-mode nil)
  '(package-selected-packages
-   '(one-themes doom-themes dracula-theme github-modern-theme github-theme atom-one-dark-theme undo-tree haskell-mode zenburn-theme evil ess markdown-mode))
+   '(atom-one-dark-theme undo-tree haskell-mode zenburn-theme evil ess markdown-mode))
  '(tool-bar-mode nil))
 (custom-set-faces
  '(default ((t (:family "Inconsolata" :foundry "CYRE" :slant normal :weight normal :height 181 :width normal)))))
