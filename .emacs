@@ -1,10 +1,35 @@
+;;      ,----.         ___    ,---.       _,.----.    ,-,--.  
+;;   ,-.--` , \ .-._ .'=.'\ .--.'  \    .' .' -   \ ,-.'-  _\ 
+;;  |==|-  _.-`/==/ \|==|  |\==\-/\ \  /==/  ,  ,-'/==/_ ,_.' 
+;;  |==|   `.-.|==|,|  / - |/==/-|_\ | |==|-   |  .\==\  \    
+;; /==/_ ,    /|==|  \/  , |\==\,   - \|==|_   `-' \\==\ -\   
+;; |==|    .-' |==|- ,   _ |/==/ -   ,||==|   _  , |_\==\ ,\  
+;; |==|_  ,`-._|==| _ /\   /==/-  /\ - \==\.       /==/\/ _ | 
+;; /==/ ,     //==/  / / , |==\ _.\=\.-'`-.`.___.-'\==\ - , / 
+;; `--`-----`` `--`./  `--` `--`                    `--`---'  
+
+;; General stuff ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+;; Request dark title bar (works for GTK only):
+(defun set-selected-frame-dark ()
+  (interactive)
+  (call-process-shell-command "xprop -f _GTK_THEME_VARIANT 8u -set _GTK_THEME_VARIANT \"dark\" -id \"$(xdotool getactivewindow)\""))
+
+(set-selected-frame-dark)
+
+;; Put custom-set-variables into custom-file
+;; so they don't clutter .emacs:
+(setq custom-file "~/.emacs.d/custom.el")
+(load custom-file 'noerror)
+
+;; Some general settings:
 (tool-bar-mode -1)
 (menu-bar-mode -1)
 (toggle-scroll-bar -1)
 (scroll-bar-mode -1)
 (electric-pair-mode 1)
-(setq electric-pair-preserve-balance nil)
 (setq inhibit-x-resources 1)
+(setq make-backup-files nil) ;; no annyoing "[filename]~"-files
 
 ;; Set default window size under X:
 (when (window-system)
@@ -19,27 +44,7 @@
 	       "https://melpa.org/packages/"))
 (package-initialize)
 
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-enabled-themes '(atom-one-dark))
- '(custom-safe-themes
-   '(default))
- '(global-display-line-numbers-mode t)
- '(menu-bar-mode nil)
- '(package-selected-packages
-   '(doom-themes atom-one-dark-theme undo-tree haskell-mode zenburn-theme evil ess markdown-mode))
- '(tool-bar-mode nil))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(default ((t (:family "Inconsolata" :foundry "CYRE" :slant normal :weight normal :height 158 :width normal)))))
-
-;; evil
+;; evil ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 (require 'evil)
 (evil-mode 1)
 (setq-default evil-cross-lines t)
@@ -72,7 +77,7 @@
    (ess-fl-keyword:fun-calls)
    (ess-fl-keyword:numbers . t)
    (ess-fl-keyword:operators . t)
-   (ess-fl-keyword:delimiters)
+   (ess-fl-keyword:delimiters . t)
    (ess-fl-keyword:=)
    (ess-R-fl-keyword:F&T)))
 
@@ -118,3 +123,14 @@
   (define-key evil-normal-state-map (kbd "<remap> <evil-previous-line>") 'evil-previous-visual-line)
   (define-key evil-motion-state-map (kbd "<remap> <evil-next-line>") 'evil-next-visual-line)
   (define-key evil-motion-state-map (kbd "<remap> <evil-previous-line>") 'evil-previous-visual-line))
+
+(setq markdown-fontify-code-blocks-natively t)
+
+;; Dashboard
+(require 'dashboard)
+(dashboard-setup-startup-hook)
+(setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
+(setq dashboard-startup-banner "~/.emacs.d/banner.txt")
+(setq dashboard-center-content t)
+(setq dashboard-items '((recents . 5)))
+
