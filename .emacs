@@ -126,6 +126,11 @@
 
 (setq markdown-fontify-code-blocks-natively t)
 
+(defun my-markdown-mode-hook ()
+  (visual-line-mode))
+
+(add-hook 'markdown-mode-hook 'my-markdown-mode-hook)
+
 ;; Dashboard
 (require 'dashboard)
 (dashboard-setup-startup-hook)
