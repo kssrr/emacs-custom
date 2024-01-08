@@ -32,8 +32,8 @@
 (setq make-backup-files nil) ;; no annyoing "[filename]~"-files
 
 ;; Set default window size under X:
-(when (window-system)
-  (set-frame-size (selected-frame) 80 37))
+;;(when (window-system)
+  ;;(set-frame-size (selected-frame) 80 37))
 
 ;; Repos:
 (require 'package)
@@ -135,7 +135,16 @@
 (require 'dashboard)
 (dashboard-setup-startup-hook)
 (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
-(setq dashboard-startup-banner "~/.emacs.d/banner.txt")
+;;(setq dashboard-startup-banner "~/.emacs.d/banner.txt")
 (setq dashboard-center-content t)
 (setq dashboard-items '((recents . 5)))
 
+;; Sidebar setup:
+(when (display-graphic-p)
+  (require 'all-the-icons))
+
+(add-hook 'dired-mode-hook 'all-the-icons-dired-mode)
+
+(defun sidebar ()
+  (interactive)
+  (dired-sidebar-toggle-sidebar))
