@@ -41,3 +41,9 @@ R -e "install.packages('crayon')"
 ```
 
 Then put the .Rprofile into your home directory (or put the code into your existing .Rprofile).
+
+## Goofy stuff
+
+This Emacs will try to request a dark title bar in a GTK environment using `set-selected-frame-dark`. This does not work in some cases, however & I have absolutely no idea why.
+
+Also, ignore the polymode errors the first time you open an Rmarkdown file.

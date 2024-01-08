@@ -131,7 +131,8 @@
 
 (add-hook 'markdown-mode-hook 'my-markdown-mode-hook)
 
-;; Dashboard
+;; Dashboard ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 (require 'dashboard)
 (dashboard-setup-startup-hook)
 (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
@@ -139,7 +140,8 @@
 (setq dashboard-center-content t)
 (setq dashboard-items '((recents . 5)))
 
-;; Sidebar setup:
+;; Sidebar ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 (when (display-graphic-p)
   (require 'all-the-icons))
 
@@ -148,3 +150,6 @@
 (defun sidebar ()
   (interactive)
   (dired-sidebar-toggle-sidebar))
+
+;; In the sidebar, don't show hidden files, but keep "." and ".." for navigation:
+(setq dired-listing-switches "-laD --group-directories-first --ignore=\.[[:alnum:]]*")
