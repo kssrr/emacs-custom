@@ -47,3 +47,9 @@ Then put the .Rprofile into your home directory (or put the code into your exist
 This Emacs will try to request a dark title bar in a GTK environment using `set-selected-frame-dark`. This does not work in some cases, however & I have absolutely no idea why.
 
 Also, ignore the polymode errors the first time you open an Rmarkdown file.
+
+## Screenshots
+
+![Dashboard](https://github.com/kssrr/emacs-custom/assets/121236725/4f89e696-9bd1-4d60-8caa-b58413b5f118)
+
+![In action](https://github.com/kssrr/emacs-custom/assets/121236725/1fc2c75f-b247-4044-a993-53bc369879ea)
