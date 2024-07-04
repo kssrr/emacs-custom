@@ -11,11 +11,11 @@
 ;; General stuff ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ;; Request dark title bar (works for GTK only):
-(defun set-selected-frame-dark ()
-  (interactive)
-  (call-process-shell-command "xprop -f _GTK_THEME_VARIANT 8u -set _GTK_THEME_VARIANT \"dark\" -id \"$(xdotool getactivewindow)\""))
+;; (defun set-selected-frame-dark ()
+;;   (interactive)
+;;   (call-process-shell-command "xprop -f _GTK_THEME_VARIANT 8u -set _GTK_THEME_VARIANT \"dark\" -id \"$(xdotool getactivewindow)\""))
 
-(set-selected-frame-dark)
+;; (set-selected-frame-dark)
 
 ;; Put custom-set-variables into custom-file
 ;; so they don't clutter .emacs:
@@ -30,10 +30,11 @@
 (electric-pair-mode 1)
 (setq inhibit-x-resources 1)
 (setq make-backup-files nil) ;; no annyoing "[filename]~"-files
+(setq frame-resize-pixelwise t) ;; avoid awkward borders around window when maximizing/tiling
 
 ;; Set default window size under X:
-;;(when (window-system)
-  ;;(set-frame-size (selected-frame) 80 37))
+;; (when (window-system)
+;;   (set-frame-size (selected-frame) 80 37)) ;; 82 39
 
 ;; Repos:
 (require 'package)
@@ -66,7 +67,7 @@
 
 ;; ESS/R ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-; Syntax highlighting:
+;; Syntax highlighting:
 (setq ess-R-font-lock-keywords
  '((ess-R-fl-keyword:keywords . t)
    (ess-R-fl-keyword:constants . t)
@@ -136,8 +137,13 @@
 (require 'dashboard)
 (dashboard-setup-startup-hook)
 (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
-;;(setq dashboard-startup-banner "~/.emacs.d/banner.txt")
+(setq dashboard-startup-banner "~/.emacs.d/ue-dark.png")
+(setq dashboard-display-icons-p t)
+(setq dashboard-icon-type 'nerd-icons)
+(setq dashboard-set-heading-icons t)
+(setq dashboard-set-file-icons t)
 (setq dashboard-center-content t)
+(dashboard-modify-heading-icons '((recents   . "nf-oct-pin")))
 (setq dashboard-items '((recents . 5)))
 
 ;; Sidebar ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -153,3 +159,7 @@
 
 ;; In the sidebar, don't show hidden files, but keep "." and ".." for navigation:
 (setq dired-listing-switches "-laD --group-directories-first --ignore=\.[[:alnum:]]*")
+
+;; Doom modeline
+(require 'doom-modeline)
+(doom-modeline-mode 1)
