@@ -11,9 +11,9 @@
 ;; General stuff ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ;; Request dark title bar (works for GTK only):
-;; (defun set-selected-frame-dark ()
-;;   (interactive)
-;;   (call-process-shell-command "xprop -f _GTK_THEME_VARIANT 8u -set _GTK_THEME_VARIANT \"dark\" -id \"$(xdotool getactivewindow)\""))
+(defun set-selected-frame-dark ()
+  (interactive)
+  (call-process-shell-command "xprop -f _GTK_THEME_VARIANT 8u -set _GTK_THEME_VARIANT \"dark\" -id \"$(xdotool getactivewindow)\""))
 
 ;; (set-selected-frame-dark)
 
@@ -29,8 +29,11 @@
 (scroll-bar-mode -1)
 (electric-pair-mode 1)
 (setq inhibit-x-resources 1)
-(setq make-backup-files nil) ;; no annyoing "[filename]~"-files
-(setq frame-resize-pixelwise t) ;; avoid awkward borders around window when maximizing/tiling
+(setq make-backup-files nil)        ;; no annyoing "[filename]~"-files
+(setq frame-resize-pixelwise t)     ;; avoid awkward borders around window when maximizing/tiling
+(setq warning-minimum-level :error) ;; prevent annoying *Warnings*-Buffer popping up
+(setq create-lockfiles nil)
+
 
 ;; Set default window size under X:
 ;; (when (window-system)
@@ -39,127 +42,197 @@
 ;; Repos:
 (require 'package)
 (setq package-check-signature nil)
-;; Add any repositories here
+(setq package-enable-at-startup nil)
 (add-to-list 'package-archives
-	     '("MELPA" .
-	       "https://melpa.org/packages/"))
+	     '("melpa" . "https://melpa.org/packages/")
+	     '("melpa-stable" . "https://stable.melpa.org/packages/"))
 (package-initialize)
 
 ;; evil ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-(require 'evil)
-(evil-mode 1)
-(setq-default evil-cross-lines t)
-(evil-set-undo-system 'undo-redo)
 
-;; Make a shortcut (:wbd) equivalent to M-x k:
-(evil-define-command evil-write-and-kill-buffer (path)
-  "Save and kill buffer."
-  :repeat nil
-  :move-point nil
-  (interactive "<f>")
-  (if (zerop (length path))
-      (save-buffer)
-    (write-file path))
-  (kill-buffer (current-buffer)))
-(evil-ex-define-cmd "wbd[elete]" 'evil-write-and-kill-buffer)
-;; ...so :wbd should behave like default Emacs' C-x s C-x k
-;; Think of :wbd as "Write Buffer & Delete"
+(use-package evil
+  :ensure t
+  :init
+  (setq-default evil-cross-lines t)
+  :config
+  (evil-mode 1)
+  (evil-set-undo-system 'undo-redo)
+
+  ;; Command to write and kill buffer (:wbd, "write buffer & delete")
+  (evil-define-command evil-write-and-kill-buffer (path)
+    "Save and kill buffer."
+    :repeat nil
+    :move-point nil
+    (interactive "<f>")
+    (if (zerop (length path))
+        (save-buffer)
+      (write-file path))
+    (kill-buffer (current-buffer)))
+  
+  (evil-ex-define-cmd "wbd[elete]" 'evil-write-and-kill-buffer))
 
 ;; ESS/R ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-;; Syntax highlighting:
-(setq ess-R-font-lock-keywords
- '((ess-R-fl-keyword:keywords . t)
-   (ess-R-fl-keyword:constants . t)
-   (ess-R-fl-keyword:modifiers . t)
-   (ess-R-fl-keyword:fun-defs)
-   (ess-R-fl-keyword:assign-ops . t)
-   (ess-R-fl-keyword:%op% . t)
-   (ess-fl-keyword:fun-calls)
-   (ess-fl-keyword:numbers . t)
-   (ess-fl-keyword:operators . t)
-   (ess-fl-keyword:delimiters . t)
-   (ess-fl-keyword:=)
-   (ess-R-fl-keyword:F&T)))
-
-;; ESS mode bindings:
-(defun my-ess-mode-hook ()
-  ;; custom key bindings for pipe and assignment like in RStudio:
-  (define-key ess-mode-map (kbd "C-S-m") "|> ")
-  (define-key inferior-ess-mode-map (kbd "C-S-m") "|> ")
-  (define-key ess-mode-map (kbd "M--") #'ess-insert-assign)
-  (define-key inferior-ess-mode-map (kbd "M--") #'ess-insert-assign)
-  ;; Indentation guide:
-  (setq ess-style 'RStudio)
-  (setq ess-indent-with-fancy-comments nil)
-  ;; Add custom keywords for highligthing:
-  (font-lock-add-keywords nil
-    '(("\\(\\w+\\):\\{2,3\\}" . font-lock-function-name-face) 
-      ("\\\\" . font-lock-keyword-face)))
-  ;; Ensure company-R-library is in ESS backends:
-  (make-local-variable 'company-backends)
-  (cl-delete-if (lambda (x) (and (eq (car-safe x) 'company-R-args))) company-backends)
-  (push (list 'company-R-args 'company-R-objects 'company-R-library :separate)
-    company-backends))
-
-(add-hook 'ess-mode-hook 'my-ess-mode-hook)
-
-(with-eval-after-load 'ess
+(use-package ess
+  :ensure t
+  :init
+  ;; syntax highlighting
+  (setq ess-R-font-lock-keywords
+        '((ess-R-fl-keyword:keywords . t)
+          (ess-R-fl-keyword:constants . t)
+          (ess-R-fl-keyword:modifiers . t)
+          (ess-R-fl-keyword:fun-defs)
+          (ess-R-fl-keyword:assign-ops . t)
+          (ess-R-fl-keyword:%op% . t)
+          (ess-fl-keyword:fun-calls)
+          (ess-fl-keyword:numbers . t)
+          (ess-fl-keyword:operators . t)
+          (ess-fl-keyword:delimiters . t)
+          (ess-fl-keyword:=)
+          (ess-R-fl-keyword:F&T)))
+  
+  :hook
+  ((ess-mode . my-ess-mode-hook)
+   (inferior-ess-mode . fix-changing-font-colors))
+  
+  :config
+  ;; ESS mode customizations
+  (defun my-ess-mode-hook ()
+    ;; Custom key bindings for pipe and assignment like in RStudio
+    (define-key ess-mode-map (kbd "C-S-m") "|> ")
+    (define-key inferior-ess-mode-map (kbd "C-S-m") "|> ")
+    (define-key ess-mode-map (kbd "M--") #'ess-insert-assign)
+    (define-key inferior-ess-mode-map (kbd "M--") #'ess-insert-assign)
+    (setq ess-style 'RStudio) ;; same indentation & style guide as RStudio
+    (setq ess-indent-with-fancy-comments nil) ;; who thought this was a good idea
+    ;; Highlighting for anonymous function syntax
+    (font-lock-add-keywords nil
+                            '(("\\(\\w+\\):\\{2,3\\}" . font-lock-function-name-face)
+                              ("\\\\" . font-lock-keyword-face)))
+    ;; Ensure `company-R-library` is in ESS backends (I'm not sure this part is working)
+    (make-local-variable 'company-backends)
+    (cl-delete-if (lambda (x) (and (eq (car-safe x) 'company-R-args)))
+                  company-backends)
+    (push (list 'company-R-args 'company-R-objects 'company-R-library :separate)
+          company-backends))
+  
+  (defun fix-changing-font-colors ()
+    "Fix issue where font colors change after printing tibbles or rlang tracebacks."
+    (setq-local ansi-color-for-comint-mode 'filter))
   (setq ess-use-company t))
 
-;; There is an issue in ESS where after printing tibbles or rlang
-;; error tracebacks, the font color inside the window running the R
-;; process changes colors. Avoiding this:
-(defun fix-changing-font-colors ()
-  (setq-local ansi-color-for-comint-mode 'filter))
+;; C++ stuff ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(add-hook 'inferior-ess-mode-hook 'fix-changing-font-colors)
+(use-package lsp-mode
+  :ensure t
+  :hook ((lsp-mode . lsp-enable-which-key-integration))
+  :config
+  (setq lsp-completion-enable-additional-text-edit nil)
+  (setq ccls-initialization-options
+       '(:clang (:extraArgs ["-I/usr/include/c++/14"
+                             "-I/usr/include/x86_64-linux-gnu/c++/14"
+                             "-I/usr/include"]
+                :resourceDir "/usr/lib/clang/19/include"))))
+(use-package lsp-ui
+  :commands lsp-ui-mode
+  :ensure t)
+(use-package ccls
+  :ensure t
+  :config
+  (setq ccls-executable "ccls")
+  (setq lsp-prefer-flymake nil)
+  (setq-default flycheck-disabled-checkers '(c/c++-clang c/c++-cppcheck c/c++-gcc))
+  :hook ((c-mode c++-mode objc-mode) .
+         (lambda () (require 'ccls) (lsp))))
+(use-package flycheck
+  :ensure t)
+(use-package yasnippet
+  :ensure t
+  :config (yas-global-mode))
+(use-package which-key
+  :ensure t
+  :config (which-key-mode))
+(use-package helm-lsp
+  :ensure t)
+(use-package helm
+  :ensure t
+  :config (helm-mode))
+(use-package lsp-treemacs
+  :ensure t)
+
+;; Compile single source file with F9
+(defun code-compile()
+  (interactive)
+  (unless (file-exists-p "Makefile")
+    (set (make-local-variable 'compile-command)
+	 (let ((file (file-name-nondirectory buffer-file-name)))
+	   (format "%s -o %s %s"
+		   (if (equal (file-name-extension file) "cpp") "g++" "gcc")
+		   (file-name-sans-extension file)
+		   file)))
+    (compile compile-command)))
+(global-set-key [f9] 'code-compile)
 
 ;; Markdown ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-;; Use visual lines in markdown-mode:
-(with-eval-after-load 'markdown-mode
+(use-package markdown-mode
+  :ensure t
+  :init
+  (setq markdown-fontify-code-blocks-natively t) ;; highlight ("fontify") code chunks
+  
+  :hook
+  (markdown-mode . my-markdown-mode-hook)
+
+  :config
+  ;; use visual line mode in markdown to make navigating big chunks of text easier
   (setq evil-respect-visual-line-mode t)
   (define-key evil-normal-state-map (kbd "<remap> <evil-next-line>") 'evil-next-visual-line)
   (define-key evil-normal-state-map (kbd "<remap> <evil-previous-line>") 'evil-previous-visual-line)
   (define-key evil-motion-state-map (kbd "<remap> <evil-next-line>") 'evil-next-visual-line)
-  (define-key evil-motion-state-map (kbd "<remap> <evil-previous-line>") 'evil-previous-visual-line))
+  (define-key evil-motion-state-map (kbd "<remap> <evil-previous-line>") 'evil-previous-visual-line)
 
-(setq markdown-fontify-code-blocks-natively t)
-
-(defun my-markdown-mode-hook ()
-  (visual-line-mode))
-
-(add-hook 'markdown-mode-hook 'my-markdown-mode-hook)
+  (defun my-markdown-mode-hook ()
+    "Enable visual-line-mode in markdown."
+    (visual-line-mode 1)))
 
 ;; Dashboard ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(require 'dashboard)
-(dashboard-setup-startup-hook)
-(setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
-(setq dashboard-startup-banner "~/.emacs.d/ue-dark.png")
-(setq dashboard-display-icons-p t)
-(setq dashboard-icon-type 'nerd-icons)
-(setq dashboard-set-heading-icons t)
-(setq dashboard-set-file-icons t)
-(setq dashboard-center-content t)
-(dashboard-modify-heading-icons '((recents   . "nf-oct-pin")))
-(setq dashboard-items '((recents . 5)))
+(use-package dashboard
+  :ensure t
+  :init
+  ;; show dashboard on startup
+  (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*"))
+        dashboard-startup-banner "~/.emacs.d/ue-dark.png"
+        dashboard-center-content t
+        dashboard-items '((recents . 5)))
+
+  :config
+  (dashboard-setup-startup-hook))
 
 ;; Sidebar ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(when (display-graphic-p)
-  (require 'all-the-icons))
+(use-package dired-sidebar
+  :ensure t
+  :init
+  ;; Load 'all-the-icons' if in a graphical display
+  (when (display-graphic-p)
+    (use-package all-the-icons
+      :ensure t))
 
-(add-hook 'dired-mode-hook 'all-the-icons-dired-mode)
+  :hook
+  (dired-mode . all-the-icons-dired-mode)
+
+  :config
+  ;; Configure dired listing switches to hide hidden files but keep navigation
+  (setq dired-listing-switches "-laD --group-directories-first --ignore=\.[[:alnum:]]*"))
 
 (defun sidebar ()
+  "Toggle the dired sidebar."
   (interactive)
   (dired-sidebar-toggle-sidebar))
 
-;; In the sidebar, don't show hidden files, but keep "." and ".." for navigation:
-(setq dired-listing-switches "-laD --group-directories-first --ignore=\.[[:alnum:]]*")
-
 ;; Doom modeline
-(require 'doom-modeline)
-(doom-modeline-mode 1)
+;; (use-package doom-modeline
+;;   :ensure t
+;;   :config
+;;   (doom-modeline-mode 1))
