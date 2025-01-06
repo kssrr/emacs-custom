@@ -1,5 +1,7 @@
 # My Emacs
 
+![](https://github.com/user-attachments/assets/3dfb5960-94f9-4aa9-869f-5998d5d32344)
+
 GNU Emacs setup for coding in R & C++, and note-taking in markdown, with sidebar & Vim-keybindings (evil-mode).
 
 ## Setup
